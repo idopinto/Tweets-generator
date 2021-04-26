@@ -1,14 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #define MAX_WORDS_IN_SENTENCE_GENERATION 20
 #define MAX_WORD_LENGTH 100
 #define MAX_SENTENCE_LENGTH 1000
 
 typedef struct WordStruct {
-  char *word;
-  struct WordProbability *prob_list;
+  char *word; //pointer to word content
+  struct WordProbability *prob_list; // dynamic array of WordProbability which contains all possible following word from the text
   //... Add your own fields here
 } WordStruct;
 
@@ -67,6 +68,8 @@ int add(LinkList *link_list, WordStruct *data)
  */
 int get_random_number(int max_number)
 {
+    int rand_num = rand() % max_number;
+    return rand_num;
 }
 
 /**
@@ -77,6 +80,7 @@ int get_random_number(int max_number)
  */
 WordStruct *get_first_random_word(LinkList *dictionary)
 {
+
 }
 
 /**
@@ -124,6 +128,18 @@ int add_word_to_probability_list(WordStruct *first_word,
  */
 void fill_dictionary(FILE *fp, int words_to_read, LinkList *dictionary)
 {
+    int count = 0;
+    char line[MAX_SENTENCE_LENGTH];
+    char *cur_word;
+    while(fgets(line,MAX_SENTENCE_LENGTH,fp)!= NULL){
+        cur_word = strtok(line," \n");
+        while((cur_word != NULL)||(count != words_to_read)){
+            printf("%s\n",cur_word);
+            cur_word = strtok(NULL," \n");
+            ++count;
+        }
+
+    }
 }
 
 /**
@@ -141,7 +157,23 @@ void free_dictionary(LinkList *dictionary)
  *             3) Path to file
  *             4) Optional - Number of words to read
  */
+
 int main(int argc, char *argv[])
 {
+    int seed, words_to_read;
+    char path_input[] = "stam"; //justdoit_tweets.txt
+    FILE *fp = fopen(path_input,"r");
+    if (fp == NULL){
+        printf("ERROR\n");
+        return EXIT_FAILURE;
+    }
+
+    LinkList *dictionary = NULL;
+    fill_dictionary(fp,3,dictionary);
+    //    seed = (int)strtol(argv[1],NULL,10);
+//    srand(seed); //time(NULL)
+//    int x = get_random_number(seed);
+//    printf("%d\n",x);
+
   return 0;
 }
