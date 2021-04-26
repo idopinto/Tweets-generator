@@ -133,7 +133,7 @@ void fill_dictionary(FILE *fp, int words_to_read, LinkList *dictionary)
     char *cur_word;
     while(fgets(line,MAX_SENTENCE_LENGTH,fp)!= NULL){
         cur_word = strtok(line," \n");
-        while((cur_word != NULL)||(count != words_to_read)){
+        while((cur_word != NULL)&&(count != words_to_read)){
             printf("%s\n",cur_word);
             cur_word = strtok(NULL," \n");
             ++count;
