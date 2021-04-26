@@ -126,20 +126,33 @@ int add_word_to_probability_list(WordStruct *first_word,
  *                      or if words_to_read == -1 than read entire file.
  * @param dictionary Empty dictionary to fill
  */
+void print_dict(LinkList *dictionary){
+    Node* p = dictionary->first;
+    while(p != NULL){
+        printf("%s->",p->data->word);
+        p = p->next;
+    }
+    printf("END\n");
+}
 void fill_dictionary(FILE *fp, int words_to_read, LinkList *dictionary)
 {
     int count = 0;
     char line[MAX_SENTENCE_LENGTH];
     char *cur_word;
+    WordStruct *cur_data;
     while(fgets(line,MAX_SENTENCE_LENGTH,fp)!= NULL){
         cur_word = strtok(line," \n");
         while((cur_word != NULL)&&(count != words_to_read)){
-            printf("%s\n",cur_word);
+//            printf("%s\n",cur_word);
+            WordStruct *cur_data = (WordStruct*)malloc(sizeof(WordStruct));
+            cur_data->word = cur_word;
+            add(dictionary,cur_data);
             cur_word = strtok(NULL," \n");
             ++count;
         }
 
     }
+    print_dict(dictionary);
 }
 
 /**
@@ -168,7 +181,8 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    LinkList *dictionary = NULL;
+    LinkList *dictionary = (LinkList *)malloc(sizeof(LinkList));
+    *dictionary = (LinkList){NULL,NULL,0};
     fill_dictionary(fp,3,dictionary);
     //    seed = (int)strtol(argv[1],NULL,10);
 //    srand(seed); //time(NULL)
