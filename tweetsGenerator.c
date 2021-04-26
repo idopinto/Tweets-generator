@@ -8,26 +8,28 @@
 #define MAX_SENTENCE_LENGTH 1000
 
 typedef struct WordStruct {
-  char *word; //pointer to word content
-  struct WordProbability *prob_list; // dynamic array of WordProbability which contains all possible following word from the text
-  //... Add your own fields here
+    char *word; //pointer to word content
+    struct WordProbability *prob_list; // dynamic array of WordProbability which contains all possible following word from the text
+    int prob_list_len;
+    int num_of_occurrence;
 } WordStruct;
 
 typedef struct WordProbability {
-  struct WordStruct *word_struct_ptr;
-  //... Add your own fields here
+    struct WordStruct *word_struct_ptr;
+//    int num_of_occurrences_after_word;
+//    float prob_value;
 } WordProbability;
 
 /************ LINKED LIST ************/
 typedef struct Node {
-  WordStruct *data;
-  struct Node *next;
+    WordStruct *data;
+    struct Node *next;
 } Node;
 
 typedef struct LinkList {
-  Node *first;
-  Node *last;
-  int size;
+    Node *first;
+    Node *last;
+    int size;
 } LinkList;
 
 /**
@@ -40,21 +42,21 @@ int add(LinkList *link_list, WordStruct *data)
 {
   Node *new_node = malloc(sizeof(Node));
   if (new_node == NULL)
-  {
-	return 1;
-  }
+    {
+      return 1;
+    }
   *new_node = (Node){data, NULL};
 
   if (link_list->first == NULL)
-  {
-	link_list->first = new_node;
-	link_list->last = new_node;
-  }
+    {
+      link_list->first = new_node;
+      link_list->last = new_node;
+    }
   else
-  {
-	link_list->last->next = new_node;
-	link_list->last = new_node;
-  }
+    {
+      link_list->last->next = new_node;
+      link_list->last = new_node;
+    }
 
   link_list->size++;
   return 0;
@@ -68,8 +70,8 @@ int add(LinkList *link_list, WordStruct *data)
  */
 int get_random_number(int max_number)
 {
-    int rand_num = rand() % max_number;
-    return rand_num;
+  int rand_num = rand() % max_number;
+  return rand_num;
 }
 
 /**
@@ -103,6 +105,14 @@ int generate_sentence(LinkList *dictionary)
 {
 }
 
+void print_prob_list(WordStruct *some_word)
+{
+  for (int i = 0; i < some_word->prob_list_len; i++)
+    {
+      printf ("%s|", some_word->prob_list->word_struct_ptr->word);
+      some_word->prob_list->word_struct_ptr++;
+    }
+}
 /**
  * Gets 2 WordStructs. If second_word in first_word's prob_list,
  * update the existing probability value.
@@ -111,10 +121,14 @@ int generate_sentence(LinkList *dictionary)
  * @param second_word
  * @return 0 if already in list, 1 otherwise.
  */
-int add_word_to_probability_list(WordStruct *first_word,
-                                 WordStruct *second_word)
-{
-}
+  int add_word_to_probability_list(WordStruct *first_word, WordStruct *second_word)
+  {
+    WordProbability *temp = (WordProbability*) realloc(first_word->prob_list,1);
+    if(temp==NULL){
+      printf("Allocation failure:");
+      exit(EXIT_FAILURE);
+    }
+  }
 
 /**
  * Read word from the given file. Add every unique word to the dictionary.
@@ -126,42 +140,71 @@ int add_word_to_probability_list(WordStruct *first_word,
  *                      or if words_to_read == -1 than read entire file.
  * @param dictionary Empty dictionary to fill
  */
-void print_dict(LinkList *dictionary){
+
+  void print_dict(LinkList *dictionary){
     Node* p = dictionary->first;
     while(p != NULL){
-        printf("%s->",p->data->word);
+        printf("( %s : %d )->",p->data->word,p->data->num_of_occurrence);
         p = p->next;
-    }
+      }
     printf("END\n");
-}
-void fill_dictionary(FILE *fp, int words_to_read, LinkList *dictionary)
-{
+  }
+  int word_in_dict_and_update(LinkList *dictionary,char* word){
+    Node* p = dictionary->first;
+    while(p != NULL){
+        if(strcmp (word,p->data->word) == 0)
+          {
+            p->data->num_of_occurrence ++;
+            return 0;
+          }// Success
+        p = p->next;
+      }
+    return 1;
+  }
+  void fill_dictionary(FILE *fp, int words_to_read, LinkList *dictionary)
+  {
     int count = 0;
     char line[MAX_SENTENCE_LENGTH];
     char *cur_word;
-    WordStruct *cur_data;
     while(fgets(line,MAX_SENTENCE_LENGTH,fp)!= NULL){
-        cur_word = strtok(line," \n");
-        while((cur_word != NULL)&&(count != words_to_read)){
-//            printf("%s\n",cur_word);
+        cur_word = strtok(line," \n\r");
+        while((cur_word != NULL)&&((count != words_to_read)||(words_to_read == -1))){
             WordStruct *cur_data = (WordStruct*)malloc(sizeof(WordStruct));
-            cur_data->word = cur_word;
-            add(dictionary,cur_data);
-            cur_word = strtok(NULL," \n");
-            ++count;
-        }
-
-    }
+            WordStruct *prev_data = (WordStruct*)malloc(sizeof(WordStruct));
+            if (cur_data == NULL){
+                printf("Allocation failure:");
+                exit(EXIT_FAILURE);
+              }
+            cur_data->word = (char*)malloc((int)strlen(cur_word));
+            if (cur_data->word == NULL){
+                printf("Allocation failure:");
+                exit(EXIT_FAILURE);
+              }
+            cur_data->num_of_occurrence = 1;
+            if (word_in_dict_and_update(dictionary,cur_word) == 1){
+                strcpy(cur_data->word,cur_word);
+                if (add(dictionary,cur_data) == 0){
+                    cur_word = strtok(NULL," \n\r");
+                    ++count;
+                  }
+                  // #TODO if (add_word_to_probability_list(prev_data,cur_data) == 0){}
+              }
+            else
+              {
+                cur_word = strtok(NULL," \n\r");
+              }
+          }
+      }
     print_dict(dictionary);
-}
+  }
 
 /**
  * Free the given dictionary and all of it's content from memory.
  * @param dictionary Dictionary to free
  */
-void free_dictionary(LinkList *dictionary)
-{
-}
+  void free_dictionary(LinkList *dictionary)
+  {
+  }
 
 /**
  * @param argc
@@ -171,23 +214,27 @@ void free_dictionary(LinkList *dictionary)
  *             4) Optional - Number of words to read
  */
 
-int main(int argc, char *argv[])
-{
+  int main(int argc, char *argv[])
+  {
     int seed, words_to_read;
-    char path_input[] = "stam"; //justdoit_tweets.txt
-    FILE *fp = fopen(path_input,"r");
-    if (fp == NULL){
-        printf("ERROR\n");
+    char path_input[] = "C:\\Users\\Ido_2\\CLionProjects\\ex3-idopinto12\\stam"; //justdoit_tweets.txt
+    FILE *fp = fopen (path_input, "r");
+    if (fp == NULL)
+      {
+        printf ("ERROR\n");
         return EXIT_FAILURE;
-    }
+      }
 
-    LinkList *dictionary = (LinkList *)malloc(sizeof(LinkList));
-    *dictionary = (LinkList){NULL,NULL,0};
-    fill_dictionary(fp,3,dictionary);
+    LinkList *dictionary = (LinkList *) malloc (sizeof (LinkList));
+    *dictionary = (LinkList) {NULL, NULL, 0};
+    fill_dictionary (fp, -1, dictionary);
+
+
+
     //    seed = (int)strtol(argv[1],NULL,10);
 //    srand(seed); //time(NULL)
 //    int x = get_random_number(seed);
 //    printf("%d\n",x);
 
-  return 0;
-}
+    return 0;
+  }
