@@ -6,6 +6,8 @@
 #define MAX_WORDS_IN_SENTENCE_GENERATION 20
 #define MAX_WORD_LENGTH 100
 #define MAX_SENTENCE_LENGTH 1000
+#define ARG_NUM 5
+#define BASE 10
 #define TRUE 1
 
 typedef struct WordStruct {
@@ -184,7 +186,9 @@ int add_word_to_probability_list(WordStruct *first_word, WordStruct *second_word
   else{
       if (first_word->prob_list_capacity == first_word->prob_list_len){
           first_word->prob_list_capacity++;
-          WordProbability *temp = (WordProbability*) realloc(first_word->prob_list, (first_word->prob_list_capacity) * sizeof (WordProbability));
+          WordProbability *temp = (WordProbability*) \
+          realloc(first_word->prob_list, \
+          (first_word->prob_list_capacity) * sizeof (WordProbability));
           if(!temp){
               free(first_word->prob_list);
               printf("Allocation failure:");
@@ -279,7 +283,8 @@ void fill_dictionary(FILE *fp, int words_to_read, LinkList *dictionary)
   WordStruct * prev_word = NULL;
   while(fgets(line,MAX_SENTENCE_LENGTH,fp)!= NULL){
       cur_word_str = strtok(line, " \n\r");
-      while((cur_word_str != NULL) && ((count != words_to_read) || (words_to_read == -1))){
+      while((cur_word_str != NULL) && \
+      ((count != words_to_read) || (words_to_read == -1))){
           WordStruct *cur_word_struct = find_in_dictionary(dictionary, cur_word_str);
           //~~ CHECK IF WORD IN DICTIONARY ~~//
           if (cur_word_struct == NULL)
@@ -353,7 +358,7 @@ void free_dictionary(LinkList *dictionary)
  */
 
 int argument_validation(int argc){
-  if ((argc != 4) && (argc!=5)){
+  if ((argc != ARG_NUM-1) && (argc!= ARG_NUM)){
       printf("Usage: <seed> < #sentences to generate> <path> Optional: < #words to read>");
       return EXIT_FAILURE;
     }
@@ -368,8 +373,8 @@ int main(int argc, char *argv[])
   int seed, words_to_read,sentences_to_generate;
   seed = (int) strtol(argv[1],NULL,10);
   srand(seed); //time(NULL)
-  words_to_read = (argc == 5) ? (int) strtol(argv[4],NULL,10): -1;
-  sentences_to_generate = (int) strtol(argv[2],NULL,10);
+  words_to_read = (argc == ARG_NUM) ? (int) strtol(argv[4],NULL,BASE): -1;
+  sentences_to_generate = (int) strtol(argv[2],NULL,BASE);
   FILE *fp = fopen (argv[3], "r");
   if (fp == NULL)
     {
@@ -381,7 +386,7 @@ int main(int argc, char *argv[])
   *dictionary = (LinkList) {NULL, NULL, 0};
   fill_dictionary (fp, words_to_read, dictionary);
   for(int i =1; i<=sentences_to_generate;i++){
-      printf("Tweet {%d}: ",i);
+      printf("Tweet %d: ",i);
       generate_sentence(dictionary);
       printf("\n");
     }
