@@ -164,7 +164,8 @@ WordStruct *find_in_dictionary(LinkList *dict,char *word){
   return NULL;
 }
 
-WordProbability *find_in_probability_list(WordStruct *first_word, WordStruct *second_word){
+WordProbability *find_in_probability_list\
+(WordStruct *first_word, WordStruct *second_word){
   if (first_word->prob_list_len != 0){
       WordProbability *prob_lst = first_word->prob_list;
       for (int i = 0; i<first_word->prob_list_len; i++){
