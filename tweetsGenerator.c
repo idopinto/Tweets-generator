@@ -197,8 +197,10 @@ int add_word_to_probability_list(WordStruct *first_word, WordStruct *second_word
           first_word->prob_list = temp;
         }
       if (first_word->prob_list != NULL){
-          first_word->prob_list[first_word->prob_list_len].word_struct_ptr = second_word;
-          first_word->prob_list[first_word->prob_list_len].num_of_occurrences_after_word = 1;
+          first_word->prob_list[first_word->prob_list_len].word_struct_ptr =\
+          second_word;
+          first_word->prob_list\
+          [first_word->prob_list_len].num_of_occurrences_after_word = 1;
           first_word->prob_list_len++;
         }
       return 1;
@@ -219,7 +221,8 @@ void print_prob_list(WordStruct *some_word)
 void print_dict(LinkList *dictionary){
   Node* p = dictionary->first;
   while(p != NULL){
-      printf("( %s : %d ) -> Probability list: ",p->data->word,p->data->num_of_occurrence);
+      printf("( %s : %d ) -> Probability list: ",\
+      p->data->word,p->data->num_of_occurrence);
       if(p->data->prob_list_len != 0){
           print_prob_list (p->data);
         }
@@ -285,7 +288,7 @@ void fill_dictionary(FILE *fp, int words_to_read, LinkList *dictionary)
       cur_word_str = strtok(line, " \n\r");
       while((cur_word_str != NULL) && \
       ((count != words_to_read) || (words_to_read == -1))){
-          WordStruct *cur_word_struct = find_in_dictionary(dictionary, cur_word_str);
+          WordStruct *cur_word_struct = find_in_dictionary(dictionary,cur_word_str);
           //~~ CHECK IF WORD IN DICTIONARY ~~//
           if (cur_word_struct == NULL)
             { //~~FIRST OCCURRENCE OF WORD~~//
@@ -293,14 +296,16 @@ void fill_dictionary(FILE *fp, int words_to_read, LinkList *dictionary)
               //~~ADD TO THE END OF THE DICTIONARY~~//
               if (add (dictionary, cur_word_struct) == 0)
                 {
-                  if (prev_word != NULL) // if the previous word is the NULL then the dict is empty.
+                  if (prev_word != NULL) // if the previous word
+                    // is the NULL then the dict is empty.
                     {
                       //~~WORD THAT ENDS WITH '.' SYMBOLIZE END OF SENTENCE~~//
                       //~~THEN WORD'S PROBABILITY LIST POINTS TO NULL~~//
                       if (cur_word_struct->end_of_sentence == 1){
                           cur_word_struct->prob_list = NULL;
                         }
-                      //~~ADD WORD TO PROBABILITY LIST WITH THE CURRENT AND THE PREVIOUS WORD STRUCTS~~//
+                      //~~ADD WORD TO PROBABILITY LIST
+                      //WITH THE CURRENT AND THE PREVIOUS WORD STRUCTS~~//
                       //~~0 IF ALREADY IN LIST, 1 OTHERWISE~~//
                       add_word_to_probability_list (prev_word, cur_word_struct);
                     }
@@ -359,7 +364,8 @@ void free_dictionary(LinkList *dictionary)
 
 int argument_validation(int argc){
   if ((argc != ARG_NUM-1) && (argc!= ARG_NUM)){
-      printf("Usage: <seed> < #sentences to generate> <path> Optional: < #words to read>");
+      printf("Usage: <seed> < #sentences to generate> "\
+      "<path> Optional: < #words to read>");
       return EXIT_FAILURE;
     }
   return 0;
