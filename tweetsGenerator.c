@@ -114,9 +114,9 @@ WordStruct *get_next_random_word(WordStruct *word_struct_ptr)
   int random_number = get_random_number(word_struct_ptr->num_of_occurrence);
   int i=0;
   while(random_number < word_struct_ptr->num_of_occurrence){
-    random_number += word_struct_ptr->prob_list[i].num_of_occurrences_after_word;
-    i++;
-  }
+      random_number += word_struct_ptr->prob_list[i].num_of_occurrences_after_word;
+      i++;
+    }
   return word_struct_ptr->prob_list[i-1].word_struct_ptr;
 }
 
@@ -135,11 +135,11 @@ int generate_sentence(LinkList *dictionary)
       printf("%s ",word->word);
       word = get_next_random_word(word);
       if (word->end_of_sentence == 1){
-        printf("%s ",word->word);
-        return i;
-      }
+          printf("%s ",word->word);
+          return i;
+        }
     }
-    return i;
+  return i;
 }
 
 
@@ -155,22 +155,22 @@ WordStruct *find_in_dictionary(LinkList *dict,char *word){
   Node* p = dict->first;
   while(p != NULL){
       if(strcmp (p->data->word,word) == 0){
-        return p->data;
-      }
+          return p->data;
+        }
       p = p->next;
     }
   return NULL;
- }
+}
 
 WordProbability *find_in_probability_list(WordStruct *first_word, WordStruct *second_word){
   if (first_word->prob_list_len != 0){
-    WordProbability *prob_lst = first_word->prob_list;
-    for (int i = 0; i<first_word->prob_list_len; i++){
-      if (strcmp (prob_lst[i].word_struct_ptr->word,second_word->word) == 0){
-        return &prob_lst[i];
-      }
+      WordProbability *prob_lst = first_word->prob_list;
+      for (int i = 0; i<first_word->prob_list_len; i++){
+          if (strcmp (prob_lst[i].word_struct_ptr->word,second_word->word) == 0){
+              return &prob_lst[i];
+            }
+        }
     }
-  }
   return NULL;
 }
 
@@ -178,27 +178,27 @@ int add_word_to_probability_list(WordStruct *first_word, WordStruct *second_word
 {
   WordProbability *ptr = find_in_probability_list (first_word,second_word);
   if (ptr != NULL){
-    first_word->prob_list->num_of_occurrences_after_word++;
-    return 0;
-  }
+      first_word->prob_list->num_of_occurrences_after_word++;
+      return 0;
+    }
   else{
-    if (first_word->prob_list_capacity == first_word->prob_list_len){
-      first_word->prob_list_capacity++;
-      WordProbability *temp = (WordProbability*) realloc(first_word->prob_list, (first_word->prob_list_capacity) * sizeof (WordProbability));
-      if(temp==NULL){
-        free(first_word->prob_list);
-        printf("Allocation failure:");
-        exit(EXIT_FAILURE);
-      }
-        first_word->prob_list = temp;
+      if (first_word->prob_list_capacity == first_word->prob_list_len){
+          first_word->prob_list_capacity++;
+          WordProbability *temp = (WordProbability*) realloc(first_word->prob_list, (first_word->prob_list_capacity) * sizeof (WordProbability));
+          if(!temp){
+              free(first_word->prob_list);
+              printf("Allocation failure:");
+              exit(EXIT_FAILURE);
+            }
+          first_word->prob_list = temp;
+        }
+      if (first_word->prob_list != NULL){
+          first_word->prob_list[first_word->prob_list_len].word_struct_ptr = second_word;
+          first_word->prob_list[first_word->prob_list_len].num_of_occurrences_after_word = 1;
+          first_word->prob_list_len++;
+        }
+      return 1;
     }
-    if (first_word->prob_list != NULL){
-      first_word->prob_list[first_word->prob_list_len].word_struct_ptr = second_word;
-      first_word->prob_list[first_word->prob_list_len].num_of_occurrences_after_word = 1;
-      first_word->prob_list_len++;
-    }
-    return 1;
-  }
 }
 
 void print_prob_list(WordStruct *some_word)
@@ -217,11 +217,11 @@ void print_dict(LinkList *dictionary){
   while(p != NULL){
       printf("( %s : %d ) -> Probability list: ",p->data->word,p->data->num_of_occurrence);
       if(p->data->prob_list_len != 0){
-        print_prob_list (p->data);
-      }
+          print_prob_list (p->data);
+        }
       else{
-        printf("EMPTY");
-      }
+          printf("EMPTY");
+        }
 
       printf("\n");
       p = p->next;
@@ -283,9 +283,8 @@ void fill_dictionary(FILE *fp, int words_to_read, LinkList *dictionary)
           WordStruct *cur_word_struct = find_in_dictionary(dictionary, cur_word_str);
           //~~ CHECK IF WORD IN DICTIONARY ~~//
           if (cur_word_struct == NULL)
-            {
+            { //~~FIRST OCCURRENCE OF WORD~~//
               cur_word_struct =  alloc_and_init (cur_word_str);
-              //~~FIRST OCCURRENCE OF WORD~~//
               //~~ADD TO THE END OF THE DICTIONARY~~//
               if (add (dictionary, cur_word_struct) == 0)
                 {
@@ -295,7 +294,7 @@ void fill_dictionary(FILE *fp, int words_to_read, LinkList *dictionary)
                       //~~THEN WORD'S PROBABILITY LIST POINTS TO NULL~~//
                       if (cur_word_struct->end_of_sentence == 1){
                           cur_word_struct->prob_list = NULL;
-                      }
+                        }
                       //~~ADD WORD TO PROBABILITY LIST WITH THE CURRENT AND THE PREVIOUS WORD STRUCTS~~//
                       //~~0 IF ALREADY IN LIST, 1 OTHERWISE~~//
                       add_word_to_probability_list (prev_word, cur_word_struct);
@@ -304,9 +303,9 @@ void fill_dictionary(FILE *fp, int words_to_read, LinkList *dictionary)
             }
             //~~THE WORD IS ALREADY IN LIST~~//
           else{
-            cur_word_struct->num_of_occurrence++;
-            add_word_to_probability_list (prev_word, cur_word_struct);
-          }
+              cur_word_struct->num_of_occurrence++;
+              add_word_to_probability_list (prev_word, cur_word_struct);
+            }
           //~~ CONTINUE~~//
           prev_word = cur_word_struct;
           count++;
@@ -323,7 +322,26 @@ void fill_dictionary(FILE *fp, int words_to_read, LinkList *dictionary)
  */
 void free_dictionary(LinkList *dictionary)
 {
-
+  Node *first = dictionary->first;
+  Node *cur;
+  while ((cur =first) != NULL){
+    first = first->next;
+    free (cur->data->word);
+    cur->data->word =NULL;
+    for(int i=0;i<cur->data->prob_list_len;i++){
+      free(cur->data->prob_list[i].word_struct_ptr);
+      cur->data->prob_list[i].word_struct_ptr = NULL;
+    }
+    free (cur->data->prob_list);
+    cur->data->prob_list =NULL;
+    free (cur->data);
+    cur->data = NULL;
+    free(cur);
+    cur = NULL;
+    }
+  first = NULL;
+  free(dictionary);
+  dictionary = NULL;
 }
 
 /**
@@ -339,14 +357,14 @@ int argument_validation(int argc){
       printf("Usage: <seed> < #sentences to generate> <path> Optional: < #words to read>");
       return EXIT_FAILURE;
     }
-    return 0;
+  return 0;
 }
 
 int main(int argc, char *argv[])
 {
   if (argument_validation(argc) == 1){
-    return EXIT_FAILURE;
-  }
+      return EXIT_FAILURE;
+    }
   int seed, words_to_read,sentences_to_generate;
   seed = (int) strtol(argv[1],NULL,10);
   srand(seed); //time(NULL)
@@ -366,7 +384,7 @@ int main(int argc, char *argv[])
       printf("Tweet {%d}: ",i);
       generate_sentence(dictionary);
       printf("\n");
-  }
-
+    }
+  free_dictionary (dictionary);
   return 0;
 }
