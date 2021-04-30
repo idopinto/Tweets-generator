@@ -11,8 +11,8 @@
 #define TRUE 1
 
 typedef struct WordStruct {
-    char *word; //pointer to word content
-    struct WordProbability *prob_list; // dynamic array of WordProbability which contains all possible following word from the text
+    char *word;
+    struct WordProbability *prob_list;
     int prob_list_capacity;
     int prob_list_len;
     int num_of_occurrence;
@@ -371,7 +371,7 @@ int main(int argc, char *argv[])
       return EXIT_FAILURE;
     }
   int seed, words_to_read,sentences_to_generate;
-  seed = (int) strtol(argv[1],NULL,10);
+  seed = (int) strtol(argv[1],NULL,BASE);
   srand(seed); //time(NULL)
   words_to_read = (argc == ARG_NUM) ? (int) strtol(argv[4],NULL,BASE): -1;
   sentences_to_generate = (int) strtol(argv[2],NULL,BASE);
