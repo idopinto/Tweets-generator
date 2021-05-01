@@ -194,7 +194,7 @@ int add_word_to_probability_list(WordStruct *first_word, WordStruct *second_word
 {
   WordProbability *ptr = find_in_probability_list (first_word,second_word);
   if (ptr != NULL){
-      first_word->prob_list->num_of_occurrences_after_word++;
+      ptr->num_of_occurrences_after_word++;
       return 0;
     }
   else{
@@ -262,6 +262,7 @@ WordStruct *alloc_and_init(char* cur_word_str){
   }
   return cur_word_struct;
 }
+
 void fill_dictionary(FILE *fp, int words_to_read, LinkList *dictionary)
 {
   int count = 0;
@@ -278,12 +279,17 @@ void fill_dictionary(FILE *fp, int words_to_read, LinkList *dictionary)
           if (cur_word_struct == NULL)
             {
               cur_word_struct = alloc_and_init (cur_word_str);
-              if ((add (dictionary, cur_word_struct) == 0) && (prev_word != NULL))
+              if (add (dictionary, cur_word_struct) == 0)
                 {
-                  if(prev_word->prob_list != NULL){
-                    add_word_to_probability_list (prev_word, cur_word_struct);
-                  }
+                  if ((prev_word!=NULL)&&(prev_word->prob_list != NULL))
+                    {
+                      add_word_to_probability_list (prev_word, cur_word_struct);
+                    }
                 }
+              else{
+                printf(ALLOC_ERR);
+                exit (EXIT_FAILURE);
+              }
             }
           else
             {
@@ -298,8 +304,6 @@ void fill_dictionary(FILE *fp, int words_to_read, LinkList *dictionary)
           cur_word_str = strtok (NULL, DELIMITERS);
         }
     }
-  //~~PRINT THIS SHIT~~//
-//print_dict(dictionary);
 }
 
 /**
