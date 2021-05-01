@@ -9,6 +9,14 @@
 #define ARG_NUM 5
 #define BASE 10
 #define TRUE 1
+#define USG_ERR "Usage: <seed> < #sentences to generate> "\
+      "<path> Optional: < #words to read>"
+#define FILE_ERR "Error: invalid file! existing with code 1...\n"
+#define NEW_LINE "\n"
+#define TWEET_MSG "Tweet %d: "
+#define ALLOC_ERR "Allocation failure: exiting with code 1...\n"
+#define DELIMITERS " \n\r"
+
 
 typedef struct WordStruct {
     char *word;
@@ -190,9 +198,8 @@ int add_word_to_probability_list(WordStruct *first_word, WordStruct *second_word
           WordProbability *temp = (WordProbability*) \
           realloc(first_word->prob_list, \
           (first_word->prob_list_capacity) * sizeof (WordProbability));
-          if(!temp){
-              free(first_word->prob_list);
-              printf("Allocation failure:");
+          if(temp == NULL){
+              printf(ALLOC_ERR);
               exit(EXIT_FAILURE);
             }
           first_word->prob_list = temp;
@@ -207,6 +214,7 @@ int add_word_to_probability_list(WordStruct *first_word, WordStruct *second_word
       return 1;
     }
 }
+
 
 void print_prob_list(WordStruct *some_word)
 {
@@ -252,17 +260,18 @@ WordStruct *alloc_and_init(char* cur_word_str){
   WordStruct *cur_word_struct = (WordStruct*)malloc(sizeof(WordStruct));
   if (cur_word_struct == NULL)
     {
-      printf ("Allocation failure:");
-      // ~~EXISTING WITHOUT FREEING~~//
+      printf (ALLOC_ERR);
       exit (EXIT_FAILURE);
     }
-  cur_word_struct->word = (char*)malloc((int)strlen(cur_word_str) + 1);
-  cur_word_struct->prob_list = (WordProbability *) malloc (sizeof (WordProbability));
-  //~~VALIDATION CHECK~~//
-  if ((cur_word_struct->word == NULL)||(cur_word_struct->prob_list == NULL))
+  cur_word_struct->word = (char*)malloc((int)strlen(cur_word_str)+1);
+  if (cur_word_struct->word == NULL)
     {
-      printf ("Allocation failure:");
-      // ~~EXISTING WITHOUT FREEING~~//
+      printf(ALLOC_ERR);
+      exit (EXIT_FAILURE);
+    }
+  cur_word_struct->prob_list = (WordProbability *) malloc (sizeof (WordProbability));
+  if(cur_word_struct->prob_list == NULL){
+      printf(ALLOC_ERR);
       exit (EXIT_FAILURE);
     }
   //~~INITIALIZATION~~//
@@ -275,52 +284,42 @@ WordStruct *alloc_and_init(char* cur_word_str){
   //~~CHECK IF WORD IS END OF SENTENCE~~//
   if (cur_word_struct->word[(int)strlen (cur_word_struct->word)-1] =='.'){
       cur_word_struct->end_of_sentence = 1;
-    }
+      cur_word_struct->prob_list = NULL;
+  }
   return cur_word_struct;
 
 }
 void fill_dictionary(FILE *fp, int words_to_read, LinkList *dictionary)
 {
   int count = 0;
-  char line[MAX_SENTENCE_LENGTH];
-  char *cur_word_str;
+  char buffer[MAX_SENTENCE_LENGTH], *cur_word_str;
   WordStruct * prev_word = NULL;
-  while(fgets(line,MAX_SENTENCE_LENGTH,fp)!= NULL){
-      cur_word_str = strtok(line, " \n\r");
-      while((cur_word_str != NULL) && \
-      ((count != words_to_read) || (words_to_read == -1))){
-          WordStruct *cur_word_struct = find_in_dictionary(dictionary,cur_word_str);
+  while(fgets(buffer, MAX_SENTENCE_LENGTH, fp) != NULL)
+    {
+      cur_word_str = strtok (buffer, DELIMITERS);
+      while ((cur_word_str != NULL) && \
+      ((count != words_to_read) || (words_to_read == -1)))
+        {
+          WordStruct *cur_word_struct = find_in_dictionary (dictionary, cur_word_str);
           //~~ CHECK IF WORD IN DICTIONARY ~~//
           if (cur_word_struct == NULL)
-            { //~~FIRST OCCURRENCE OF WORD~~//
-              cur_word_struct =  alloc_and_init (cur_word_str);
-              //~~ADD TO THE END OF THE DICTIONARY~~//
-              if (add (dictionary, cur_word_struct) == 0)
+            {
+              cur_word_struct = alloc_and_init (cur_word_str);
+              if ((add (dictionary, cur_word_struct) == 0)
+                  && (prev_word != NULL))
                 {
-                  if (prev_word != NULL) // if the previous word
-                    // is the NULL then the dict is empty.
-                    {
-                      //~~WORD THAT ENDS WITH '.' SYMBOLIZE END OF SENTENCE~~//
-                      //~~THEN WORD'S PROBABILITY LIST POINTS TO NULL~~//
-                      if (cur_word_struct->end_of_sentence == 1){
-                          cur_word_struct->prob_list = NULL;
-                        }
-                      //~~ADD WORD TO PROBABILITY LIST
-                      //WITH THE CURRENT AND THE PREVIOUS WORD STRUCTS~~//
-                      //~~0 IF ALREADY IN LIST, 1 OTHERWISE~~//
-                      add_word_to_probability_list (prev_word, cur_word_struct);
-                    }
+                  add_word_to_probability_list (prev_word, cur_word_struct);
                 }
             }
-            //~~THE WORD IS ALREADY IN LIST~~//
-          else{
+          else
+            {
               cur_word_struct->num_of_occurrence++;
               add_word_to_probability_list (prev_word, cur_word_struct);
             }
           //~~ CONTINUE~~//
           prev_word = cur_word_struct;
           count++;
-          cur_word_str = strtok(NULL, " \n\r");
+          cur_word_str = strtok (NULL, DELIMITERS);
         }
     }
   //~~PRINT THIS SHIT~~//
@@ -336,19 +335,15 @@ void free_dictionary(LinkList *dictionary)
   Node *first = dictionary->first;
   Node *cur;
   while ((cur =first) != NULL){
-    first = first->next;
-    free (cur->data->word);
-    cur->data->word =NULL;
-    for(int i=0;i<cur->data->prob_list_len;i++){
-      free(cur->data->prob_list[i].word_struct_ptr);
-      cur->data->prob_list[i].word_struct_ptr = NULL;
-    }
-    free (cur->data->prob_list);
-    cur->data->prob_list =NULL;
-    free (cur->data);
-    cur->data = NULL;
-    free(cur);
-    cur = NULL;
+
+      first = first->next;
+      free(cur->data->prob_list);
+      cur->data->prob_list = NULL;
+      free (cur->data->word);
+      cur->data->word = NULL;
+      free(cur->data);
+      cur->data =NULL;
+      free(cur);
     }
   first = NULL;
   free(dictionary);
@@ -365,38 +360,51 @@ void free_dictionary(LinkList *dictionary)
 
 int argument_validation(int argc){
   if ((argc != ARG_NUM-1) && (argc!= ARG_NUM)){
-      printf("Usage: <seed> < #sentences to generate> "\
-      "<path> Optional: < #words to read>");
+      printf(USG_ERR);
       return EXIT_FAILURE;
     }
   return 0;
 }
-
-int main(int argc, char *argv[])
-{
-  if (argument_validation(argc) == 1){
-      return EXIT_FAILURE;
+void set_seed(char* seed){
+  int int_seed = (int) strtol(seed,NULL,BASE);
+  srand(int_seed);
+}
+LinkList * new_dictionary(){
+  LinkList *dictionary = (LinkList *) malloc (sizeof (LinkList));
+  *dictionary = (LinkList) {NULL, NULL, 0};
+  return dictionary;
+}
+void print_tweets(int sentences_to_generate,LinkList *dictionary){
+  for(int i =1; i<=sentences_to_generate;i++){
+      printf(TWEET_MSG,i);
+      generate_sentence(dictionary);
+      printf(NEW_LINE);
     }
-  int seed, words_to_read,sentences_to_generate;
-  seed = (int) strtol(argv[1],NULL,BASE);
-  srand(seed); //time(NULL)
-  words_to_read = (argc == ARG_NUM) ? (int) strtol(argv[4],NULL,BASE): -1;
-  sentences_to_generate = (int) strtol(argv[2],NULL,BASE);
-  FILE *fp = fopen (argv[3], "r");
+}
+FILE * open_tweets_file(char *file_path){
+  FILE *fp = fopen (file_path, "r");
   if (fp == NULL)
     {
-      printf ("Error: invalid file! existing with code 1...\n");
-      return EXIT_FAILURE;
+      printf (FILE_ERR);
+      return NULL;
     }
-  LinkList *dictionary = (LinkList *) malloc (sizeof (LinkList));
-
-  *dictionary = (LinkList) {NULL, NULL, 0};
+  return fp;
+}
+void run(FILE *fp,int words_to_read,int sentences_to_generate){
+  LinkList *dictionary = new_dictionary();
   fill_dictionary (fp, words_to_read, dictionary);
-  for(int i =1; i<=sentences_to_generate;i++){
-      printf("Tweet %d: ",i);
-      generate_sentence(dictionary);
-      printf("\n");
-    }
+  print_tweets (sentences_to_generate,dictionary);
   free_dictionary (dictionary);
-  return 0;
+}
+int main(int argc, char *argv[])
+{
+  if (argument_validation(argc) == 1){return EXIT_FAILURE;}
+  int words_to_read = (argc == ARG_NUM) ? (int) strtol(argv[4],NULL,BASE): -1;
+  int sentences_to_generate = (int) strtol(argv[2],NULL,BASE);
+  FILE *fp = open_tweets_file (argv[3]);
+  if (fp == NULL){return EXIT_FAILURE;}
+  set_seed(argv[1]);
+  run(fp,words_to_read,sentences_to_generate);
+  fclose(fp);
+  return EXIT_SUCCESS;
 }
