@@ -168,9 +168,15 @@ WordStruct *find_in_dictionary(LinkList *dict,char *word){
     }
   return NULL;
 }
-
+/**
+ * this function check if second word is in first word's probability list.
+ * @param first_word, second_word
+ * @return if exist, pointer to word struct in first word probability list
+ * else return NULL.
+ */
 WordProbability *find_in_probability_list\
 (WordStruct *first_word, WordStruct *second_word){
+
   if (first_word->prob_list_len != 0){
       WordProbability *prob_lst = first_word->prob_list;
       for (int i = 0; i<first_word->prob_list_len; i++){
@@ -219,14 +225,9 @@ int add_word_to_probability_list(WordStruct *first_word, WordStruct *second_word
 }
 
 /**
- * Read word from the given file. Add every unique word to the dictionary.
- * Also, at every iteration, update the prob_list of the previous word with
- * the value of the current word.
- * @param fp File pointer
- * @param words_to_read Number of words to read from file.
- *                      If value is bigger than the file's word count,
- *                      or if words_to_read == -1 than read entire file.
- * @param dictionary Empty dictionary to fill
+ * this function do memory allocation and initialization for new word_struct
+ * in dictionary.
+ * @param cur_word_str
  */
 WordStruct *alloc_and_init(char* cur_word_str){
   //~~CURRENT WORD STRUCT ALLOCATION~~//
@@ -263,6 +264,16 @@ WordStruct *alloc_and_init(char* cur_word_str){
   return cur_word_struct;
 }
 
+/**
+ * Read word from the given file. Add every unique word to the dictionary.
+ * Also, at every iteration, update the prob_list of the previous word with
+ * the value of the current word.
+ * @param fp File pointer
+ * @param words_to_read Number of words to read from file.
+ *                      If value is bigger than the file's word count,
+ *                      or if words_to_read == -1 than read entire file.
+ * @param dictionary Empty dictionary to fill
+ */
 void fill_dictionary(FILE *fp, int words_to_read, LinkList *dictionary)
 {
   int count = 0;
@@ -326,35 +337,6 @@ void free_dictionary(LinkList *dictionary)
 }
 
 
-void print_prob_list(WordStruct *some_word)
-{
-  printf("[");
-  for (int i = 0; i < some_word->prob_list_len; i++)
-    {
-      printf ("(%s ", some_word->prob_list[i].word_struct_ptr->word);
-      printf("#%d)",some_word->prob_list[i].num_of_occurrences_after_word);
-    }
-  printf("] Length: %d",some_word->prob_list_len);
-}
-
-void print_dict(LinkList *dictionary){
-  Node* p = dictionary->first;
-  while(p != NULL){
-      printf("( %s : %d ) -> Probability list: ",\
-      p->data->word,p->data->num_of_occurrence);
-      if(p->data->prob_list_len != 0){
-          print_prob_list (p->data);
-        }
-      else{
-          printf("EMPTY");
-        }
-
-      printf("\n");
-      p = p->next;
-    }
-  printf("END\n");
-}
-
 int argument_validation(int argc){
   if ((argc != ARG_NUM-1) && (argc!= ARG_NUM)){
       printf(USG_ERR);
@@ -398,6 +380,7 @@ void run(FILE *fp,int words_to_read,int sentences_to_generate){
   print_tweets (sentences_to_generate,dictionary);
   free_dictionary (dictionary);
 }
+
 /**
  * @param argc
  * @param argv 1) Seed
