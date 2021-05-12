@@ -130,7 +130,8 @@ WordStruct *get_next_random_word(WordStruct *word_struct_ptr)
   int random_number = get_random_number(word_struct_ptr->num_of_occurrence);
   int i=-1;
   while(random_number < word_struct_ptr->num_of_occurrence){
-      random_number += word_struct_ptr->prob_list[i+1].num_of_occurrences_after_word;
+      random_number += word_struct_ptr->\
+      prob_list[i+1].num_of_occurrences_after_word;
       i++;
     }
   return word_struct_ptr->prob_list[i].word_struct_ptr;
@@ -180,7 +181,8 @@ WordProbability *find_in_probability_list\
   if (first_word->prob_list_len != 0){
       WordProbability *prob_lst = first_word->prob_list;
       for (int i = 0; i<first_word->prob_list_len; i++){
-          if (strcmp (prob_lst[i].word_struct_ptr->word,second_word->word) == 0){
+          if (strcmp (prob_lst[i].word_struct_ptr->\
+          word,second_word->word) == 0){
               return &prob_lst[i];
             }
         }
@@ -253,7 +255,8 @@ WordStruct *alloc_and_init(char* cur_word_str){
     }
   else{
       cur_word_struct->end_of_sentence = 0;
-      cur_word_struct->prob_list = (WordProbability *) malloc (sizeof (WordProbability));
+      cur_word_struct->prob_list = \
+      (WordProbability *) malloc (sizeof (WordProbability));
       if(cur_word_struct->prob_list == NULL){
           printf(ALLOC_ERR);
           exit (EXIT_FAILURE);
@@ -285,7 +288,8 @@ void fill_dictionary(FILE *fp, int words_to_read, LinkList *dictionary)
       while ((cur_word_str != NULL) && \
       ((count != words_to_read) || (words_to_read == -1)))
         {
-          WordStruct *cur_word_struct = find_in_dictionary (dictionary, cur_word_str);
+          WordStruct *cur_word_struct =\
+          find_in_dictionary (dictionary, cur_word_str);
           //~~ CHECK IF WORD IN DICTIONARY ~~//
           if (cur_word_struct == NULL)
             {
