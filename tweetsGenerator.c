@@ -299,7 +299,8 @@ void fill_dictionary(FILE *fp, int words_to_read, LinkList *dictionary)
                 {
                   if ((prev_word!=NULL)&&(prev_word->prob_list != NULL))
                     {
-                      add_word_to_probability_list (prev_word, cur_word_struct);
+                      add_word_to_probability_list\
+                      (prev_word, cur_word_struct);
                     }
                 }
               else{
