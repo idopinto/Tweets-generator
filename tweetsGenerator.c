@@ -198,7 +198,8 @@ WordProbability *find_in_probability_list\
  * @param second_word
  * @return 0 if already in list, 1 otherwise.
  */
-int add_word_to_probability_list(WordStruct *first_word, WordStruct *second_word)
+int add_word_to_probability_list\
+(WordStruct *first_word, WordStruct *second_word)
 {
   WordProbability *ptr = find_in_probability_list (first_word,second_word);
   if (ptr != NULL){
@@ -396,7 +397,8 @@ void run(FILE *fp,int words_to_read,int sentences_to_generate){
 int main(int argc, char *argv[])
 {
   if (argument_validation(argc) == 1){return EXIT_FAILURE;}
-  int words_to_read = (argc == ARG_NUM) ? (int) strtol(argv[4],NULL,BASE): -1;
+  int words_to_read = \
+  (argc == ARG_NUM) ? (int) strtol(argv[4],NULL,BASE): -1;
   int sentences_to_generate = (int) strtol(argv[2],NULL,BASE);
   FILE *fp = open_tweets_file (argv[3]);
   if (fp == NULL){return EXIT_FAILURE;}
